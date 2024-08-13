@@ -1,5 +1,5 @@
 # [GlitterCL](http://polytonic.github.io/Glitter/)
-![Screenshot](https://imgur.com/a/rPniIQ8)
+![Screenshot](https://i.imgur.com/8bSCwwO.png)
 
 ## Summary
 Glitter is a dead simple boilerplate for OpenGL, intended as a starting point for the tutorials on [learnopengl.com](http://www.learnopengl.com) and [open.gl](https://open.gl). Glitter compiles and statically links every required library, so you can jump right into doing what you probably want: how to get started with OpenGL.
