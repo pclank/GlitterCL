@@ -1,4 +1,4 @@
-# [GlitterCL](http://polytonic.github.io/Glitter/)
+# GlitterCL
 ![Screenshot](https://i.imgur.com/8bSCwwO.png)
 
 ## Summary
