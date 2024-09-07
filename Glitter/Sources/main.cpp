@@ -96,7 +96,6 @@ int main(int argc, char * argv[]) {
     std::string fs_char(buffer);
     vs_char += "\\..\\Glitter\\Shaders\\simple_shader.vs";
     fs_char += "\\..\\Glitter\\Shaders\\simple_shader.fs";
-    //Shader simple_shader("C:/Repos/2D_Fluids/Glitter/Shaders/simple_shader.vs", "C:/Repos/2D_Fluids/Glitter/Shaders/simple_shader.fs");
     Shader simple_shader(vs_char.c_str(), fs_char.c_str());
 
     // Setup OpenGL Buffers
