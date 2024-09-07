@@ -42,7 +42,10 @@ file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag
                           Glitter/Shaders/*.geom
-                          Glitter/Shaders/*.vert)
+                          Glitter/Shaders/*.vert
+						  Glitter/Shaders/*.vs
+						  Glitter/Shaders/*.fs
+						  Glitter/Sources/gpu_src/*.cl)
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
                           Readme.md
                          .gitattributes
@@ -54,6 +57,8 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
+link_directories(Glitter/Sources/OpenCL/lib)
+
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
@@ -61,7 +66,8 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${VENDORS_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-                      BulletDynamics BulletCollision LinearMath)
+                      BulletDynamics BulletCollision LinearMath opencl)
+target_link_libraries(${PROJECT_NAME} opengl32)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
