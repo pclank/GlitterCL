@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.0)
-project(OpenGLTemplate)
+project(GlitterCL)
 
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
-add_subdirectory(Template/Vendor/glfw)
+add_subdirectory(Glitter/Vendor/glfw)
 
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
-add_subdirectory(Template/Vendor/assimp)
+add_subdirectory(Glitter/Vendor/assimp)
 
 option(BUILD_BULLET2_DEMOS OFF)
 option(BUILD_CPU_DEMOS OFF)
 option(BUILD_EXTRAS OFF)
 option(BUILD_OPENGL3_DEMOS OFF)
 option(BUILD_UNIT_TESTS OFF)
-add_subdirectory(Template/Vendor/bullet)
+add_subdirectory(Glitter/Vendor/bullet)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -27,25 +27,25 @@ else()
     endif()
 endif()
 
-include_directories(Template/Headers/
-                    Template/Vendor/assimp/include/
-                    Template/Vendor/bullet/src/
-                    Template/Vendor/glad/include/
-                    Template/Vendor/glfw/include/
-                    Template/Vendor/glm/
-                    Template/Vendor/stb/
-					Template/Sources/OpenCL/include)
+include_directories(Glitter/Headers/
+                    Glitter/Vendor/assimp/include/
+                    Glitter/Vendor/bullet/src/
+                    Glitter/Vendor/glad/include/
+                    Glitter/Vendor/glfw/include/
+                    Glitter/Vendor/glm/
+                    Glitter/Vendor/stb/
+					Glitter/Sources/OpenCL/include)
 
-file(GLOB VENDORS_SOURCES Template/Vendor/glad/src/glad.c)
-file(GLOB PROJECT_HEADERS Template/Headers/*.hpp)
-file(GLOB PROJECT_SOURCES Template/Sources/*.cpp)
-file(GLOB PROJECT_SHADERS Template/Shaders/*.comp
-                          Template/Shaders/*.frag
-                          Template/Shaders/*.geom
-                          Template/Shaders/*.vert
-						  Template/Shaders/*.vs
-						  Template/Shaders/*.fs
-						  Template/Sources/gpu_src/*.cl)
+file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
+file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
+file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
+file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
+                          Glitter/Shaders/*.frag
+                          Glitter/Shaders/*.geom
+                          Glitter/Shaders/*.vert
+						  Glitter/Shaders/*.vs
+						  Glitter/Shaders/*.fs
+						  Glitter/Sources/gpu_src/*.cl)
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
                           Readme.md
                          .gitattributes
@@ -57,7 +57,7 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
-link_directories(Template/Sources/OpenCL/lib)
+link_directories(Glitter/Sources/OpenCL/lib)
 
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
@@ -73,5 +73,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Template/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Glitter/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})

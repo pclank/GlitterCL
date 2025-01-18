@@ -1,16 +1,6 @@
 // Local Headers
 #include "glitter.hpp"
 #include <Shader.hpp>
-#include <Camera.hpp>
-#include <Model.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-// Reference: https://github.com/nothings/stb/blob/master/stb_image.h#L4
-// To use stb_image, add this in *one* C++ source file.
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 // System Headers
 #include <glad/glad.h>
@@ -21,17 +11,6 @@
 #include <cstdlib>
 #include <direct.h>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void MouseMovementCallback(GLFWwindow* window, double x_pos, double y_pos);
-void processInput(GLFWwindow* window);
-
-Camera cam = Camera(glm::vec3(0.0f));
-float deltaTime = 0.0f, lastFrame = 0.0f;
-float lastX;
-float lastY;
-bool first_mouse_flag = true;
-
 int main(int argc, char * argv[]) {
 
     // Load GLFW and Create a Window
@@ -41,7 +20,7 @@ int main(int argc, char * argv[]) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    auto mWindow = glfwCreateWindow(mWidth, mHeight, "OpenGLTemplate", nullptr, nullptr);
+    auto mWindow = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
 
     // Check for Valid Context
     if (mWindow == nullptr) {
@@ -51,13 +30,8 @@ int main(int argc, char * argv[]) {
 
     // Create Context and Load OpenGL Functions
     glfwMakeContextCurrent(mWindow);
-    glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
-    glfwSetCursorPosCallback(mWindow, MouseMovementCallback);
     gladLoadGL();
     fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
-
-    // tell GLFW to capture our mouse
-    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // OpenCL initialization
     std::vector<cl::Platform> all_platforms;
@@ -101,7 +75,7 @@ int main(int argc, char * argv[]) {
     char buffer[1024];
     getcwd(buffer, 1024);
     std::string kernel_char(buffer);
-    kernel_char += "\\..\\Template\\Sources\\gpu_src\\test.cl";
+    kernel_char += "\\..\\Glitter\\Sources\\gpu_src\\test.cl";
     kernel_source = ReadFile2(kernel_char.c_str());
     sources.push_back({ kernel_source.c_str(), kernel_source.length() });
 
@@ -120,19 +94,9 @@ int main(int argc, char * argv[]) {
     // OpenGL shaders
     std::string vs_char(buffer);
     std::string fs_char(buffer);
-    /*vs_char += "\\..\\Template\\Shaders\\simple_shader.vs";
-    fs_char += "\\..\\Template\\Shaders\\simple_shader.fs";*/
-    vs_char += "\\..\\Template\\Shaders\\basic_model.vert";
-    fs_char += "\\..\\Template\\Shaders\\basic_model.fs";
+    vs_char += "\\..\\Glitter\\Shaders\\simple_shader.vs";
+    fs_char += "\\..\\Glitter\\Shaders\\simple_shader.fs";
     Shader simple_shader(vs_char.c_str(), fs_char.c_str());
-
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(true);
-
-    // configure global opengl state
-    // -----------------------------
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
 
     // Setup OpenGL Buffers
     unsigned int VBO, VAO, EBO;
@@ -212,120 +176,26 @@ int main(int argc, char * argv[]) {
     err = clFinish(queue());
     std::cout << "Finished CL queue with err:\t" << err << std::endl;
 
-    // Create Camera
-    cam = Camera(glm::vec3(0.0f));
-
-    // Load Test model
-    std::string modelChar(buffer);
-    //modelChar += "\\..\\models\\Survival_BackPack_2.fbx";
-    modelChar += "\\..\\models\\backpack.obj";
-    Model testModel(modelChar);
-
-    // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     // Rendering Loop
-    while (glfwWindowShouldClose(mWindow) == false)
-    {
+    while (glfwWindowShouldClose(mWindow) == false) {
         if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(mWindow, true);
 
-        // per-frame time logic
-        // --------------------
-        float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        // input
-        // -----
-        processInput(mWindow);
-
-        cam.UpdateVelocity(deltaTime);
-        cam.MoveCamera(deltaTime);
-
         // Background Fill Color
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
+        // bind Texture
+        glBindTexture(GL_TEXTURE_2D, gl_texture);
+
+        // render container
         simple_shader.use();
-
-        // view/projection transformations
-        glm::mat4 projection = cam.GetCurrentProjectionMatrix(mWidth, mHeight);
-        glm::mat4 view = cam.GetCurrentViewMatrix();
-        simple_shader.setMat4("projection", projection);
-        simple_shader.setMat4("view", view);
-
-        // render the loaded model
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.1f));	// it's a bit too big for our scene, so scale it down
-        simple_shader.setMat4("model", model);
-        testModel.Draw(simple_shader);
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // Flip Buffers and Draw
         glfwSwapBuffers(mWindow);
         glfwPollEvents();
-    }
-    
-    glfwTerminate();
+    }   glfwTerminate();
     return EXIT_SUCCESS;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    // Ignore Keyboard Inputs for Camera Movement if arcball_mode == true
-    if (cam.arcball_mode)
-        return;
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cam.MoveCamera(FWD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cam.MoveCamera(AFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cam.MoveCamera(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cam.MoveCamera(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        cam.MoveCamera(UPWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        cam.MoveCamera(DOWNWARD, deltaTime);
-}
-
-void MouseMovementCallback(GLFWwindow* window, double x_pos, double y_pos)
-{
-    float xpos = static_cast<float>(x_pos);
-    float ypos = static_cast<float>(y_pos);
-
-    if (first_mouse_flag)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        first_mouse_flag = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-
-    lastX = xpos;
-    lastY = ypos;
-
-    if (cam.arcball_mode)
-        cam.RotateArcballCamera(xoffset, yoffset, mWidth, mHeight, deltaTime);
-    else
-        cam.RotateCamera(xoffset, yoffset);
-}
-
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
 }
